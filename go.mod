@@ -1,4 +1,4 @@
-module exportstruct
+module github.com/Fliko/exportstruct
 
 go 1.15
 
