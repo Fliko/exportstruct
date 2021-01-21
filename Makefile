@@ -1,4 +1,4 @@
-all: lint clean tidy test
+all: lint clean tidy start
 
 lint:
 	gofmt -s -w .
@@ -13,6 +13,9 @@ tidy:
 docs:
 	(sleep 1 && open http://localhost:6060/pkg/exportstruct/) & \
 	godoc -http=:6060
+
+start:
+	go run main.go -h
 
 test: clean lint
 	echo "Make sure services db is started locally"

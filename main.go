@@ -1,5 +1,27 @@
-/*exportstruct really rocks
- */
+/*Package exportStruct - A new cli application
+
+USAGE:
+   main [global options] command [command options] [arguments...]
+
+DESCRIPTION:
+   Connects to your db and converts tables into structs
+
+COMMANDS:
+   help, h  Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --file FILE, --of FILE            Generated code exports to FILE (default: "types.go")
+   --user USER, -u USER              Database USER (default: "postgres") [$ES_USER]
+   --password PASSWORD, -p PASSWORD  Database PASSWORD (default: "password") [$ES_PASS]
+   --host HOST, -a HOST              Address of db HOST (default: "::1") [$ES_HOST]
+   --port PORT                       PORT of db (default: "5432") [$ES_PORT]
+   --db NAME                         NAME of db (default: "postgres") [$ES_DB]
+   --package value, --pkg value      Package name for generated go file (default: "main")
+   --ssl-mode disable, --sm disable  Set ssl-mode to verify-full or disable (default: disable) (default: false)
+   --json                            Add json tags, camelcase (default: false)
+   --sql                             Add sql tags, snake_case (default: false)
+   --help, -h                        show help (default: false)
+*/
 package main
 
 import (
@@ -57,6 +79,12 @@ func main() {
 			Usage:   "`NAME` of db",
 			EnvVars: []string{"ES_DB"},
 		},
+		&cli.StringFlag{
+			Name:    "package",
+			Aliases: []string{"pkg"},
+			Value:   "main",
+			Usage:   "Package name for generated go file",
+		},
 		&cli.BoolFlag{
 			Name:    "ssl-mode",
 			Aliases: []string{"sm"},
@@ -74,8 +102,9 @@ func main() {
 			Usage: "Add sql tags, snake_case",
 		},
 	}
-
-	app.Action = export
+	app.Name = "exportStruct"
+	app.Description = "Connects to your db and converts tables into structs"
+	app.Action = Export
 
 	err := app.Run(os.Args)
 	if err != nil {
@@ -83,10 +112,11 @@ func main() {
 	}
 }
 
-func export(c *cli.Context) error {
+// Export runs commands to generate the type file
+func Export(c *cli.Context) error {
 	file, user, pass, host, port, db := c.String("file"), c.String("user"), c.String("password"),
 		c.String("host"), c.String("port"), c.String("db")
-	println(file)
+
 	ssl := c.Bool("ssl-mode")
 	verify := "disable"
 	if ssl {
@@ -127,12 +157,10 @@ func export(c *cli.Context) error {
 		panic(err)
 	}
 	cmd = exec.Command("gofmt", "-s", "-w", file)
-	println(cmd.String())
 	if err = cmd.Run(); err != nil {
 		panic(err)
 	}
 	cmd = exec.Command("goimports", "-w", file)
-	println(cmd.String())
 	if err = cmd.Run(); err != nil {
 		panic(err)
 	}
